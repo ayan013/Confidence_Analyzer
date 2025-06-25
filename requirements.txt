@@ -1,0 +1,23 @@
+# Core
+fastapi
+uvicorn[standard]
+python-multipart
+pydantic
+dotenv
+
+# Audio processing
+librosa
+numpy
+scipy
+soundfile
+
+# OpenAI API
+openai
+
+# Accent detection (SpeechBrain model)
+speechbrain
+torchaudio
+torch  # Use torch==2.1.0 or compatible with your GPU driver
+
+# CORS (already included in uvicorn[standard], but listed here for clarity)
+aiofiles
