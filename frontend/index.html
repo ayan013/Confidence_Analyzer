@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Speech Analyzer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  body {
+    font-family: sans-serif;
+    text-align: center;
+    margin-top: 50px;
+  }
+  button {
+    font-size: 18px;
+    padding: 10px 20px;
+    margin: 0 10px;
+  }
+  #timer {
+    font-size: 32px;
+    margin: 20px 0;
+  }
+  #waveform {
+    width: 100%;
+    height: 100px;
+    background: #f5f5f5;
+    border: 1px solid #ccc;
+    margin-bottom: 20px;
+  }
+</style>
+
+<!-- Import required libs for decoding and encoding -->
+<script src="https://cdn.jsdelivr.net/npm/audio-decode@2.1.1/dist/audio-decode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/wav-encoder@1.6.0/build/wav-encoder.min.js"></script>
+
+</head>
+<body>
+<h1>🎙️ Speak for 60 seconds</h1>
+<canvas id="waveform"></canvas>
+<div id="timer">⏱️ 60</div>
+<div>
+  <button id="startBtn">Start Recording</button>
+  <button id="stopBtn" disabled>Stop Recording</button>
+  <button id="restartBtn" disabled>Restart</button>
+</div>
+
+<script>
+  let stream = null;
+  let mediaRecorder = null;
+  let audioChunks = [];
+  let timerInterval = null;
+  let timeLeft = 60;
+
+  const startBtn = document.getElementById("startBtn");
+  const stopBtn = document.getElementById("stopBtn");
+  const restartBtn = document.getElementById("restartBtn");
+  const timerDisplay = document.getElementById("timer");
+  const canvas = document.getElementById("waveform");
+  const ctx = canvas.getContext("2d");
+  canvas.width = canvas.offsetWidth;
+  canvas.height = 100;
+
+  // For waveform visualization
+  let audioContext = null;
+  let analyser = null;
+  let dataArray = null;
+  let sourceNode = null;
+  let animationId = null;
+
+  // Utility: check if Safari for fallback
+  function isSafari() {
+    return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  }
+
+  // Initialize: ask mic permission ONCE and save stream
+  async function initMic() {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      console.log("✅ Microphone access granted");
+    } catch (err) {
+      alert("❌ Microphone access denied. Cannot record audio.");
+    }
+  }
+
+  // Timer
+  function updateTimer() {
+    timerDisplay.textContent = `⏱️ ${timeLeft}`;
+  }
+  function startTimer() {
+    timeLeft = 60;
+    updateTimer();
+    timerInterval = setInterval(() => {
+      timeLeft--;
+      updateTimer();
+      if (timeLeft <= 0) {
+        stopRecording();
+      }
+    }, 1000);
+  }
+  function stopTimer() {
+    clearInterval(timerInterval);
+  }
+
+  // Waveform drawing
+  function drawWaveform() {
+    if (!analyser) return;
+    animationId = requestAnimationFrame(drawWaveform);
+    analyser.getByteTimeDomainData(dataArray);
+    ctx.fillStyle = "#f5f5f5";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#1976d2";
+    ctx.beginPath();
+    let sliceWidth = canvas.width / dataArray.length;
+    let x = 0;
+    for (let i = 0; i < dataArray.length; i++) {
+      let v = dataArray[i] / 128.0;
+      let y = v * canvas.height / 2;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+      x += sliceWidth;
+    }
+    ctx.lineTo(canvas.width, canvas.height / 2);
+    ctx.stroke();
+  }
+  function stopWaveform() {
+    if (animationId) {
+      cancelAnimationFrame(animationId);
+      animationId = null;
+    }
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#f5f5f5";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
+  // Start Recording
+  async function startRecording() {
+    if (!stream) {
+      alert("Mic not initialized");
+      return;
+    }
+
+    audioChunks = [];
+    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.ondataavailable = (e) => {
+      if (e.data.size > 0) audioChunks.push(e.data);
+    };
+
+    mediaRecorder.onstop = async () => {
+      stopTimer();
+      stopWaveform();
+      disableButtons(false, true, true);
+
+      const webmBlob = new Blob(audioChunks, { type: "audio/webm" });
+
+      // Convert to WAV safely
+      try {
+        const arrayBuffer = await webmBlob.arrayBuffer();
+        const audioBuffer = await window.audioDecode(arrayBuffer);
+        const channelData = [];
+        for (let i = 0; i < audioBuffer.numberOfChannels; i++) {
+          channelData.push(audioBuffer.getChannelData(i));
+        }
+        const wavBuffer = await window.WavEncoder.encode({
+          sampleRate: audioBuffer.sampleRate,
+          channelData: channelData,
+        });
+        const wavBlob = new Blob([wavBuffer], { type: "audio/wav" });
+
+        // Auto upload .wav to backend
+        await uploadToBackend(wavBlob);
+      } catch (err) {
+        alert("❌ Failed to convert recording to WAV: " + err.message);
+      }
+    };
+
+    mediaRecorder.start();
+    startTimer();
+    disableButtons(true, false, false);
+
+    // Setup waveform visualizer
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    sourceNode = audioContext.createMediaStreamSource(stream);
+    analyser = audioContext.createAnalyser();
+    analyser.fftSize = 2048;
+    dataArray = new Uint8Array(analyser.fftSize);
+    sourceNode.connect(analyser);
+    drawWaveform();
+
+    // Auto stop after 60s
+    setTimeout(() => {
+      if (mediaRecorder && mediaRecorder.state === "recording") {
+        mediaRecorder.stop();
+      }
+    }, 60000);
+  }
+
+  // Stop Recording
+  function stopRecording() {
+    if (mediaRecorder && mediaRecorder.state === "recording") {
+      mediaRecorder.stop();
+      disableButtons(false, true, true);
+    }
+  }
+
+  // Restart Recording
+  function restartRecording() {
+    stopRecording();
+    setTimeout(() => {
+      startRecording();
+    }, 300);
+  }
+
+  // Upload wav blob to backend
+  async function uploadToBackend(wavBlob) {
+    const formData = new FormData();
+    formData.append("file", wavBlob, "speech.wav");
+
+    try {
+      const res = await fetch("http://localhost:8000/api/analyze", {
+        method: "POST",
+        body: formData,
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      alert("✅ Analysis:\n" + JSON.stringify(data, null, 2));
+    } catch (err) {
+      alert("❌ Upload failed: " + err.message);
+    }
+  }
+
+  // Enable/Disable buttons
+  function disableButtons(start, stop, restart) {
+    startBtn.disabled = start;
+    stopBtn.disabled = stop;
+    restartBtn.disabled = restart;
+  }
+
+  // Initialize
+  window.onload = async () => {
+    await initMic();
+    disableButtons(false, true, true);
+  };
+
+  // Button listeners
+  startBtn.onclick = startRecording;
+  stopBtn.onclick = stopRecording;
+  restartBtn.onclick = restartRecording;
+
+</script>
+</body>
+</html>
