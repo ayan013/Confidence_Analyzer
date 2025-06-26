@@ -1,6 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI,APIRouter
 from fastapi.middleware.cors import CORSMiddleware
-from backend.routers.analyze_router import router as analyze_router
+from backend.routers import analyze_router
 
 
 
@@ -14,4 +14,4 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(analyze_router)
+app.include_router(analyze_router.router)
