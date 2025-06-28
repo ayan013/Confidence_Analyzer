@@ -6,6 +6,7 @@ from fastapi.responses import FileResponse
 
 
 
+
 app=FastAPI()
 
 app.add_middleware(
@@ -16,8 +17,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-
 # Mount frontend folder as static
 app.mount("/frontend", StaticFiles(directory="frontend"), name="frontend")
 
@@ -27,3 +26,4 @@ def serve_index():
     return FileResponse("frontend/index.html")
 
 app.include_router(analyze_router.router)
+
