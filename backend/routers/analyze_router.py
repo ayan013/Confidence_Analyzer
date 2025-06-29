@@ -1,7 +1,7 @@
 from fastapi import APIRouter
-#from backend.endpoints import analyze
+from backend.endpoints.analyze import router as analyze_endpoint
 
+print("✅ analyze_router loaded")
 router = APIRouter(prefix="/analyze",tags=["Analyze Voice"])
-
-from backend.endpoints import analyze
+router.include_router(analyze_endpoint)
 

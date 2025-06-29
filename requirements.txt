@@ -10,6 +10,8 @@ librosa
 numpy
 scipy
 soundfile
+pydub
+ffmpeg
 
 # OpenAI API
 openai

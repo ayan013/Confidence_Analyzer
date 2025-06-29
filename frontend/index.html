@@ -197,11 +197,11 @@
       const formData = new FormData();
       formData.append('file', blob, 'recording.webm');
       try {
-        const res = await fetch('http://localhost:8000/api/analyze', {
+        const res = await fetch('http://127.0.0.1:8000/analyze/', {
           method: 'POST',
           body: formData,
         });
-        status.textContent = res.ok ? '✅ Uploaded successfully' : `❌ Upload failed: ${res.statusText}`;
+        status.textContent = res.ok ? '✅ Upload Successful' : `❌ Upload failed: ${res.statusText}`;
       } catch (err) {
         status.textContent = `❌ Error: ${err.message}`;
       }
