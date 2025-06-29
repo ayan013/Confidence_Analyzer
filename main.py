@@ -17,6 +17,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from fastapi.routing import APIRoute
+
+@app.on_event("startup")
+def show_routes():
+    print("\n--- Registered Routes ---")
+    for route in app.routes:
+        try:
+            print(f"{route.path} [{', '.join(route.methods)}]")
+        except AttributeError:
+            print(f"{route.path} [non-method route: {type(route)}]")
+
 # Mount frontend folder as static
 app.mount("/frontend", StaticFiles(directory="frontend"), name="frontend")
 
