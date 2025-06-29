@@ -4,6 +4,7 @@ uvicorn[standard]
 python-multipart
 pydantic
 dotenv
+pydantic-settings
 
 # Audio processing
 librosa
@@ -11,7 +12,7 @@ numpy
 scipy
 soundfile
 pydub
-ffmpeg
+
 
 # OpenAI API
 openai
