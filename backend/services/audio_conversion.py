@@ -8,6 +8,7 @@ AudioSegment.converter = os.path.abspath("ffmpeg.exe")
 AudioSegment.ffprobe   = "ffprobe.exe"
 
 def audio_conversion(raw_bytes: bytes) -> bytes:
+    webm_path, wav_path = None, None
     try:
         # Step 1: Write raw bytes to a temporary .webm file
         with tempfile.NamedTemporaryFile(suffix=".webm", delete=False) as webm_file:
@@ -35,4 +36,11 @@ def audio_conversion(raw_bytes: bytes) -> bytes:
     except Exception as e:
         print(f"❌ Unexpected error during audio conversion: {e}")
 
+    finally:
+        # Clean up both temp files if they exist
+        if webm_path and os.path.exists(webm_path):
+            os.remove(webm_path)
+        if wav_path and os.path.exists(wav_path):
+            os.remove(wav_path)
     return None
+
