@@ -1,10 +1,11 @@
 import openai
 from backend.core.config import settings
+from langdetect import detect
 import io
 
 openai.api_key = settings.OPENAI_API_KEY
 
-def transcription(audio_bytes: bytes) -> str:
+def transcription(audio_bytes: bytes):
     try:
         audio_file = io.BytesIO(audio_bytes)
         audio_file.name = "audio.wav"
@@ -13,7 +14,12 @@ def transcription(audio_bytes: bytes) -> str:
             model="whisper-1"
         )
         #print(dir(transcription),flush=True)
-        return transcript.text
+        detect_lang=detect(transcript.text)
+        if detect_lang != "en":
+            print(f"Not english",flush=True)
+            return None
+        else:
+            return transcript.text
     except Exception as e:
         return f"Transcription Failed : {e}"
 
