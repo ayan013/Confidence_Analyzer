@@ -14,9 +14,16 @@ async def analyze_voice(file: UploadFile = File(...)):
     audio_bytes = await file.read()
     converted_audio = audio_conversion(audio_bytes)
     transcribed_audio = transcription(converted_audio)
-    label, accent_score = detect_accent(converted_audio)
-    if label and accent_score:
-        print(f"{label} - {accent_score}",flush=True)
+    if transcribed_audio is None:
+        print("Please speak in English",flush=True)
+        return f"Please speak in English"
     else:
-        print("Failed",flush=True)
-    return None
+        print(f"Transcription: {transcribed_audio}",flush=True)
+        label, accent_score = detect_accent(converted_audio)
+        if label and accent_score:
+            print(f"Accent - {label} - {accent_score*100:.2f}%",flush=True)
+        else:
+            print("Analyze Failed",flush=True)
+        return f"Successful"
+
+
