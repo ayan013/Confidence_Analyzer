@@ -28,7 +28,7 @@ def audio_conversion(raw_bytes: bytes) -> bytes:
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as wav_file:
             audio.export(wav_file.name, format="wav")
             wav_path = wav_file.name
-        #print(f"In Audio conversion file {wav_path}",flush=True)
+
         # Step 4: Read the .wav file bytes and return
         with open(wav_path, "rb") as f:
             file=f.read()
@@ -37,13 +37,13 @@ def audio_conversion(raw_bytes: bytes) -> bytes:
 
 
     except (CouldntDecodeError, CouldntEncodeError) as codec_error:
-        print(  f"❌ FFmpeg error during conversion: {codec_error}")
+        print(f"FFmpeg error during conversion: {codec_error}")
     except FileNotFoundError as fnf_error:
-        print(f"❌ File not found: {fnf_error}")
+        print(f"File not found: {fnf_error}")
     except PermissionError as perm_error:
-        print(f"❌ Permission error: {perm_error}")
+        print(f"Permission error: {perm_error}")
     except Exception as e:
-        print(f"❌ Unexpected error during audio conversion: {e}")
+        print(f"Unexpected error during audio conversion: {e}")
 
     finally:
         for path in (webm_path, wav_path):
@@ -51,6 +51,6 @@ def audio_conversion(raw_bytes: bytes) -> bytes:
                 if path and os.path.exists(path):
                     os.remove(path)
             except Exception as cleanup_error:
-                 print(f"⚠️ Temp cleanup failed for {path}: {cleanup_error}")
+                 print(f"Temp cleanup failed for {path}: {cleanup_error}")
     return None
 
