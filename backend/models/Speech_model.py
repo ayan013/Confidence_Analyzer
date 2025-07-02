@@ -5,5 +5,6 @@ class SpeechModel(BaseModel):
     speaking_rate: str
     filler_words: str
     accent: str
+    accent_score:float
     personality: str
     tip: str
