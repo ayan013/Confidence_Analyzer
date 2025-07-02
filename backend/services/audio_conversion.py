@@ -10,6 +10,12 @@ AudioSegment.ffprobe   = "ffprobe.exe"
 def audio_conversion(raw_bytes: bytes) -> bytes:
     webm_path, wav_path = None, None
     try:
+
+        # Validate input bytes (optional but good practice)
+        if not raw_bytes or len(raw_bytes) < 10:
+            print("Invalid audio bytes.",flush=True)
+            return None
+
         # Step 1: Write raw bytes to a temporary .webm file
         with tempfile.NamedTemporaryFile(suffix=".webm", delete=False) as webm_file:
             webm_file.write(raw_bytes)
@@ -22,10 +28,13 @@ def audio_conversion(raw_bytes: bytes) -> bytes:
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as wav_file:
             audio.export(wav_file.name, format="wav")
             wav_path = wav_file.name
-
+        #print(f"In Audio conversion file {wav_path}",flush=True)
         # Step 4: Read the .wav file bytes and return
         with open(wav_path, "rb") as f:
-            return f.read()
+            file=f.read()
+
+        return file
+
 
     except (CouldntDecodeError, CouldntEncodeError) as codec_error:
         print(  f"❌ FFmpeg error during conversion: {codec_error}")
@@ -37,10 +46,11 @@ def audio_conversion(raw_bytes: bytes) -> bytes:
         print(f"❌ Unexpected error during audio conversion: {e}")
 
     finally:
-        # Clean up both temp files if they exist
-        if webm_path and os.path.exists(webm_path):
-            os.remove(webm_path)
-        if wav_path and os.path.exists(wav_path):
-            os.remove(wav_path)
+        for path in (webm_path, wav_path):
+            try:
+                if path and os.path.exists(path):
+                    os.remove(path)
+            except Exception as cleanup_error:
+                 print(f"⚠️ Temp cleanup failed for {path}: {cleanup_error}")
     return None
 
