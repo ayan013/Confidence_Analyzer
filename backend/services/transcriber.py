@@ -11,15 +11,18 @@ def transcription(audio_bytes: bytes):
         audio_file.name = "audio.wav"
         transcript = openai.audio.transcriptions.create(
             file=audio_file,
-            model="whisper-1"
+            model="whisper-1",
+            response_format="verbose_json"  # enables language field
         )
         #print(dir(transcription),flush=True)
-        detect_lang=detect(transcript.text)
-        if detect_lang != "en":
+        detect_lang=str(transcript.language)
+        print(f"Language: {detect_lang}",flush=True)
+        if detect_lang != "english":
             print(f"Not english",flush=True)
-            return None
+            print(f"Lang:- {detect_lang}",flush=True)
+            return None,detect_lang
         else:
-            return transcript.text
+            return transcript.text,"English"
     except Exception as e:
         return f"Transcription Failed : {e}"
 
