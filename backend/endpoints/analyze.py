@@ -13,10 +13,10 @@ router = APIRouter()
 async def analyze_voice(file: UploadFile = File(...)):
     audio_bytes = await file.read()
     converted_audio = audio_conversion(audio_bytes)
-    transcribed_audio = transcription(converted_audio)
-    if transcribed_audio is None:
-        print("Please speak in English",flush=True)
-        return f"Please speak in English"
+    transcribed_audio,lang = transcription(converted_audio)
+    if lang != "English":
+        print(f"language detected: {lang}",flush=True)
+        return {"lang": lang}
     else:
         print(f"Transcription: {transcribed_audio}",flush=True)
         label, accent_score = detect_accent(converted_audio)
@@ -24,6 +24,11 @@ async def analyze_voice(file: UploadFile = File(...)):
             print(f"Accent - {label} - {accent_score*100:.2f}%",flush=True)
         else:
             print("Analyze Failed",flush=True)
-        return f"Successful"
+        return {
+            "lang": lang,
+            "transcription": transcribed_audio,
+            "accent": label,
+            "accent_score": round(accent_score * 100, 2)
+        }
 
 
