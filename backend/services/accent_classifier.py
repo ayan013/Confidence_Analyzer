@@ -1,12 +1,11 @@
 import shutil
-
 from speechbrain.inference.classifiers import EncoderClassifier
 import tempfile
 import os
-#import torchaudio
+import torchaudio
 
 classifier = EncoderClassifier.from_hparams(
-    source="Jzuluaga/accent-id-commonaccent_ecapa",
+    source="Jzuluaga/accent-id-commonaccent_xlsr-en-english",
     savedir="pretrained/accent")
 
 def detect_accent(audio_bytes: bytes):
