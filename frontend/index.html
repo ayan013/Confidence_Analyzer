@@ -26,6 +26,33 @@
     text-align: center;
     font-size: 1.4rem;
   }
+  .highlight {
+    font-weight: bold;
+    background: linear-gradient(90deg, #00c6ff, #0072ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmer 3s infinite;
+  }
+
+  .accent {
+    background: linear-gradient(90deg, #f7971e, #ffd200);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmer 3s infinite;
+  }
+
+  .score {
+    background: linear-gradient(90deg, #00b09b, #96c93d);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmer 3s infinite;
+  }
+
+  @keyframes shimmer {
+    0% { filter: brightness(1); }
+    50% { filter: brightness(1.5); }
+    100% { filter: brightness(1); }
+  }
 </style>
 </head>
 <body>
@@ -158,6 +185,7 @@
   }
 
   async function startRecording() {
+    console.log("Start clicked")
     if (mediaRecorder && mediaRecorder.state === 'recording') return;
 
     try {
@@ -202,6 +230,22 @@
           body: formData,
         });
         status.textContent = res.ok ? '✅ Upload Successful' : `❌ Upload failed: ${res.statusText}`;
+        if (res.ok) {
+          const data = await res.json();
+          if (data.lang !== "English") {
+            status.innerHTML = `You are speaking ${data.lang}, Please speak in English.`;
+          }
+          else
+          {
+            status.innerHTML = `
+            ✅ Upload Successful<br>
+            <strong><span class="highlight">Transcription: </strong> ${data.transcription}</span><br>
+            <strong><span class="accent">Accent: </strong> ${data.accent}</span><br>
+            <strong><span class="score">Accent Score: </strong> ${data.accent_score}%</span>`;
+           }
+        } else {
+            const error = await res.json();
+            status.textContent = `❌ ${error.error || 'Upload failed'}`;}
       } catch (err) {
         status.textContent = `❌ Error: ${err.message}`;
       }
