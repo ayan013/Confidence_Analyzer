@@ -5,6 +5,7 @@ python-multipart
 pydantic
 dotenv
 pydantic-settings
+logging
 
 # Audio processing
 librosa
