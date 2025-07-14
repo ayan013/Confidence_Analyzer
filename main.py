@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.routers import analyze_router
+from backend.routers.V1 import analyze_router
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import logging.config
@@ -19,7 +19,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-from fastapi.routing import APIRoute
 
 @app.on_event("startup")
 def show_routes():
