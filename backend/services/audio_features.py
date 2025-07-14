@@ -2,11 +2,12 @@ import librosa.feature
 import numpy as np
 import io
 
-FILLERS = {"um", "uh", "like", "you know", "i mean", "so", "actually", "basically"}
+FILLERS = {"um", "uh", "ah", "like", "you know", "i mean", "actually", "kind of"}
 
 def extract_audio_features(audio_bytes: bytes, transcription: str):
     y, sr = librosa.load(io.BytesIO(audio_bytes), sr=16000)
     total_time = librosa.get_duration(y=y, sr=sr)
+    print(f"Total Time: {total_time}",flush=True)
 
     # Pitch features
     pitches, magnitudes = librosa.piptrack(y=y, sr=sr)
@@ -31,7 +32,15 @@ def extract_audio_features(audio_bytes: bytes, transcription: str):
 
     # Filler word detection
     transcript = transcription.lower()
-    filler_count = sum(transcript.count(filler) for filler in FILLERS)
+    filler_words = []
+    filler_count = 0
+
+    for filler in FILLERS:
+        count = transcript.count(filler)
+        if count > 0:
+            filler_words.append((filler, count))
+            filler_count += count
+
 
     # Words per minute (WPM)
     word_count = len(transcription.strip().split())
@@ -44,6 +53,7 @@ def extract_audio_features(audio_bytes: bytes, transcription: str):
         "energy_var": round(energy_var, 6),
         "pause_count": pauses,
         "filler_count": filler_count,
-        "duration_sec": round(total_time, 2),
+        "filler_words": filler_words,
+        "duration_sec": total_time,
         "wpm": wpm
     }
