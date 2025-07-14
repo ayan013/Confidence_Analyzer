@@ -19,7 +19,7 @@ langdetect
 openai
 
 # Accent detection (SpeechBrain model)
-speechbrain
+speechbrain==1.0.3
 torchaudio
 torch  # Use torch==2.1.0 or compatible with your GPU driver
 
