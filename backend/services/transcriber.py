@@ -5,7 +5,7 @@ import io
 
 openai.api_key = settings.OPENAI_API_KEY
 
-def transcription(audio_bytes: bytes):
+async def transcription(audio_bytes: bytes):
     try:
         audio_file = io.BytesIO(audio_bytes)
         audio_file.name = "audio.wav"
