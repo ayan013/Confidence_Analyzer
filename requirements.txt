@@ -8,7 +8,7 @@ pydantic-settings
 logging
 
 # Audio processing
-librosa
+librosa==0.11.0
 numpy
 scipy
 soundfile
@@ -16,7 +16,7 @@ pydub
 langdetect
 
 # OpenAI API
-openai
+openai==1.91.0
 
 # Accent detection (SpeechBrain model)
 speechbrain==1.0.3
