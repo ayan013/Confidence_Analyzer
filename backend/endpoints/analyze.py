@@ -2,10 +2,8 @@ import logging
 
 print("✅ analyze.py loaded")
 from fastapi import UploadFile, APIRouter,File
-
 from backend.models.Speech_model import SpeechModel
 from backend.services.audio_conversion import audio_conversion
-
 from backend.services.transcriber import transcription
 from backend.services.accent_classifier import detect_accent
 from backend.services.audio_features import extract_audio_features
