@@ -1,6 +1,6 @@
 import logging
 
-print("✅ analyze.py loaded")
+print("analyze.py loaded")
 from fastapi import UploadFile, APIRouter,File
 from backend.models.Speech_model import SpeechModel
 from backend.services.audio_conversion import audio_conversion
